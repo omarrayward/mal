@@ -211,7 +211,7 @@ vb_RUNSTEP =      mono ../$(2) --raw $(3)
 vimscript_RUNSTEP = ./run_vimscript.sh ../$(2) $(3)
 # needs TERM=dumb to work with readline
 guile_RUNSTEP =   guile --no-auto-compile -L ../guile ../$(2) $(3)
-oes6_RUNSTEP =  ./run babel-node ../$(2) $(3)
+oes6_RUNSTEP =  ./run babel-node --presets es2015 ../$(2) $(3)
 
 
 vimscript_TEST_OPTS = --test-timeout 30

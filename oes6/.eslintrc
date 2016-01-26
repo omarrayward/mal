@@ -1,3 +1,6 @@
 {
-  "extends": ["standard"]
+  "extends": ["standard"],
+  "presets": [
+        "es2015"
+    ]
 }
