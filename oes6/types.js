@@ -8,7 +8,7 @@ export class MalInteger extends MalType {
   constructor (arg) {
     super()
     this._type = 'MalInteger'
-    this.value = arg
+    this.value = parseInt(arg, 10)
   }
 }
 
@@ -16,7 +16,7 @@ export class MalFloat extends MalType {
   constructor (arg) {
     super()
     this._type = 'MalFloat'
-    this.value = arg
+    this.value = parseFloat(arg)
   }
 }
 
