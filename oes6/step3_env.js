@@ -1,69 +1,70 @@
 import {read_str} from './reader.js'
 import {pr_str} from './printer.js'
-import {MalHashMap, MalVector, MalList} from './types.js'
+import {malHashMap, malVector, malList, malSymbol} from './types.js'
 import {Env} from './env.js'
 
 const repl_env = new Env(null)
-repl_env.set('+', (a, b) => a + b)
-repl_env.set('-', (a, b) => a - b)
-repl_env.set('*', (a, b) => a * b)
-repl_env.set('/', (a, b) => a / b)
-
-const READ = arg => read_str(arg)
+repl_env.set(malSymbol('+'), (a, b) => a + b)
+repl_env.set(malSymbol('-'), (a, b) => a - b)
+repl_env.set(malSymbol('*'), (a, b) => a * b)
+repl_env.set(malSymbol('/'), (a, b) => a / b)
 
 const eval_ast = function (ast, env) {
-  switch (ast._type) {
-    case 'MalSymbol':
-      const func = env.get(ast.value)
-      if (!func) {
-        throw Error(`${ast.value} not found`)
+  if (typeof ast === 'object') {
+    switch (ast.type) {
+      case 'symbol':
+        return env.get(ast)
+      case 'list':
+        return malList(...ast.map(element => EVAL(element, env)))
+      case 'vector':
+        return malVector(...ast.map(element => EVAL(element, env)))
+      case 'hashMap':
+        return malHashMap(ast[0], EVAL(ast[1], env))
+      default:
+        return ast
+    }
+  }
+  return ast
+}
+
+const _isSpecialForm = ast => ['def!', 'let*'].indexOf(ast[0].value) !== -1
+
+const _evalSpecialForm = function (ast, env) {
+  const specialAtom = ast[0].value
+  switch (specialAtom) {
+    case 'def!':
+      return env.set(ast[1], EVAL(ast[2], env))
+
+    case 'let*':
+      const newEnv = new Env(env)
+      if (ast[1].length % 2 !== 0) {
+        throw Error('The first argument of let* should be a MapList with even objects')
       }
-      return func
-    case 'MalList':
-      return new MalList(...ast.value.map(element => EVAL(element, env)))
-    case 'MalVector':
-      return new MalVector(...ast.value.map(element => EVAL(element, env)))
-    case 'MalHashMap':
-      return new MalHashMap(ast.key, EVAL(ast.value, env))
-    default:
-      return ast
+
+      while (ast[1].length) {
+        const [symb, val] = ast[1].splice(0, 2)
+        const evaluatedValue = EVAL(val, newEnv)
+        newEnv.set(symb, evaluatedValue)
+      }
+
+      return EVAL(ast[2], newEnv)
   }
 }
 
 const _evalList = function (ast, env) {
-  switch (ast.value[0].value) {
-    case 'def!':
-      return env.set(ast.value[1].value, EVAL(ast.value[2], env))
-
-    case 'let*':
-      const newEnv = new Env(env)
-      if (ast.value[1].value.length % 2 !== 0) {
-        throw Error('The first argument of let* should be a MapList with even objects')
-      }
-
-      while (ast.value[1].value.length) {
-        const [symb, val] = ast.value[1].value.splice(0, 2)
-        const evaluatedValue = EVAL(val, newEnv)
-        newEnv.set(symb.value, evaluatedValue)
-      }
-
-      return EVAL(ast.value[2], newEnv)
-
-    default:
-
-      const evaluatedList = eval_ast(ast, env)
-      const func = evaluatedList.value.shift()
-      const args = evaluatedList.value.map(atom => atom.value)
-      return read_str(func(...args).toString())
+  if (_isSpecialForm(ast)) {
+    return _evalSpecialForm(ast, env)
   }
+
+  const evaluatedList = eval_ast(ast, env)
+  const [func, ...args] = evaluatedList
+  return func(...args)
 }
 
-const EVAL = function (ast, env) {
-  if (ast._type !== 'MalList') {
-    return eval_ast(ast, env)
-  }
-  return _evalList(ast, env)
-}
+const _isMalList = ast => typeof ast === 'object' && ast.type === 'list'
+
+const READ = arg => read_str(arg)
+const EVAL = (ast, env) => _isMalList(ast) && _evalList(ast, env) || eval_ast(ast, env)
 const PRINT = arg => pr_str(arg, false)
 
 const rep = function (arg) {

@@ -1,29 +1,28 @@
 export const pr_str = function (malObj, print_readably = true) {
-  switch (malObj._type) {
-    case 'MalInteger':
-      return malObj.value.toString()
-    case 'MalFloat':
-      return malObj.value.toString()
-    case 'MalSymbol':
-      return malObj.value
-    case 'MalFalse':
-      return 'false'
-    case 'MalNil':
+  switch (typeof malObj) {
+    case 'boolean':
+      return malObj.toString()
+    case 'number':
+      return malObj.toString()
+    case 'undefined':
       return 'nil'
-    case 'MalTrue':
-      return 'true'
-    case 'MalKeyword':
-      return malObj.value
-    case 'MalString':
+    case 'string':
       if (!print_readably) {
-        return malObj.value
+        return malObj
       }
-      return malObj.value.replace(/\\\\/g, '\\').replace(/\\"/g, `"`).replace(/\\n/g, `\n`)
-    case 'MalList':
-      return `(${malObj.value.map(e => pr_str(e, print_readably)).join(' ')})`
-    case 'MalVector':
-      return `[${malObj.value.map(e => pr_str(e, print_readably)).join(' ')}]`
-    case 'MalHashMap':
-      return `{${pr_str(malObj.key, print_readably)} ${pr_str(malObj.value, print_readably)}}`
+      return malObj.replace(/\\\\/g, '\\').replace(/\\"/g, `"`).replace(/\\n/g, `\n`)
+    case 'object':
+      switch (malObj.type) {
+        case 'symbol':
+          return malObj.value
+        case 'keyword':
+          return malObj.value
+        case 'list':
+          return `(${malObj.map(e => pr_str(e, print_readably)).join(' ')})`
+        case 'vector':
+          return `[${malObj.map(e => pr_str(e, print_readably)).join(' ')}]`
+        case 'hashMap':
+          return `{${pr_str(malObj[0], print_readably)} ${pr_str(malObj[1], print_readably)}}`
+      }
   }
 }

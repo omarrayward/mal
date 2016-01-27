@@ -1,14 +1,4 @@
-import {MalFalse,
-        MalHashMap,
-        MalFloat,
-        MalInteger,
-        MalKeyword,
-        MalList,
-        MalNil,
-        MalString,
-        MalSymbol,
-        MalTrue,
-        MalVector} from './types.js'
+import {malSymbol, malKeyword, malList, malVector, malHashMap} from './types.js'
 
 class Reader {
   constructor (tokens) {
@@ -52,7 +42,7 @@ const tokenizer = function (str) {
 export const read_str = function (str) {
   const tokens = tokenizer(str)
   if (!tokens.length) {
-    return new MalNil()
+    return undefined
   }
   const reader = new Reader(tokens)
   return read_form(reader)
@@ -61,19 +51,19 @@ export const read_str = function (str) {
 const expand_reader_macro = function (reader) {
   switch (reader.next()) {
     case `'`:
-      return new MalList(new MalSymbol('quote'), read_form(reader))
+      return malList(malSymbol('quote'), read_form(reader))
     case '`':
-      return new MalList(new MalSymbol('quasiquote'), read_form(reader))
+      return malList(malSymbol('quasiquote'), read_form(reader))
     case '~':
-      return new MalList(new MalSymbol('unquote'), read_form(reader))
+      return malList(malSymbol('unquote'), read_form(reader))
     case '~@':
-      return new MalList(new MalSymbol('splice-unquote'), read_form(reader))
+      return malList(malSymbol('splice-unquote'), read_form(reader))
     case '@':
-      return new MalList(new MalSymbol('deref'), read_form(reader))
+      return malList(malSymbol('deref'), read_form(reader))
     case '^':
       const meta = read_form(reader)
       reader.next()
-      return new MalList(new MalSymbol('with-meta'), read_form(reader), meta)
+      return malList(malSymbol('with-meta'), read_form(reader), meta)
   }
 }
 
@@ -89,10 +79,10 @@ const read_form = function (reader) {
 const read_list = function (reader) {
   const firstToken = reader.peek()
 
-  const CompundDataType = {
-    '(': MalList,
-    '[': MalVector,
-    '{': MalHashMap
+  const compundDataType = {
+    '(': malList,
+    '[': malVector,
+    '{': malHashMap
   }[firstToken]
 
   const expectedClosingChar = {
@@ -104,31 +94,31 @@ const read_list = function (reader) {
   const forms = []
   while (reader.next()) {
     if (reader.peek() === expectedClosingChar) {
-      return new CompundDataType(...forms)
+      return compundDataType(...forms)
     }
     forms.push(read_form(reader))
   }
   throw new Error(`expected '${expectedClosingChar}', got EOF`)
 }
 
-const malTypeForRegex = new Map([
-  [/true/, MalTrue],
-  [/false/, MalFalse],
-  [/nil/, MalNil],
-  [/^:[a-zA-Z]+/, MalKeyword],
-  [/^[-+]?\d+$/, MalInteger],
-  [/[-+]?[0-9]*\.[0-9]+/, MalFloat],
-  [/"(?:\\.|[^\\"])*"/, MalString],
-  [/[\[\]\'{}()'`~^@]|[^\s\[\]{}('"`,;)]+/, MalSymbol]
-])
-
 const read_atom = function (reader) {
   const token = reader.peek()
-  for (let regex of malTypeForRegex.keys()) {
-    if (regex.test(token)) {
-      const MalType = malTypeForRegex.get(regex)
-      return new MalType(token)
-    }
+  if (/true/.test(token)) {
+    return true
+  } else if (/false/.test(token)) {
+    return false
+  } else if (/nil/.test(token)) {
+    return undefined
+  } else if (/^:[a-zA-Z]+/.test(token)) {
+    return malKeyword(token)
+  } else if (/^[-+]?\d+$/.test(token)) {
+    return parseInt(token, 10)
+  } else if (/[-+]?[0-9]*\.[0-9]+/.test(token)) {
+    return parseFloat(token)
+  } else if (/"(?:\\.|[^\\"])*"/.test(token)) {
+    return token
+  } else if (/[\[\]\'{}()'`~^@]|[^\s\[\]{}('"`,;)]+/.test(token)) {
+    return malSymbol(token)
   }
 
   throw new Error(`Token ${token} couldn\'t be parsed`)

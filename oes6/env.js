@@ -1,31 +1,29 @@
 export class Env {
   constructor (outer) {
-    this.data = new Map([
-      ['outer', outer]
-    ])
+    this.data = {'outer': outer}
   }
 
   set (symb, malObject) {
-    this.data.set(symb, malObject)
+    this.data[symb.value] = malObject
     return malObject
   }
 
   find (symb) {
-    if (this.data.get(symb)) {
+    if (this.data[symb.value]) {
       return this
     }
-    if (!this.data.get('outer')) {
+    if (!this.data.outer) {
       return null
     }
-    return this.data.get('outer').find(symb)
+    return this.data.outer.find(symb)
   }
 
   get (symb) {
     const env = this.find(symb)
     if (!env) {
-      throw Error(`${symb} not found`)
+      throw Error(`${symb.value} not found`)
     }
-    return env.data.get(symb)
+    return env.data[symb.value]
   }
 
 }
