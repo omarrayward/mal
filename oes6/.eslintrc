@@ -1,6 +1,13 @@
 {
   "extends": ["standard"],
   "presets": [
-        "es2015"
-    ]
+      "es2015"
+  ],
+  "rules": {
+    "comma-dangle": [2, "always-multiline"],
+    "no-unused-vars": [2,{
+      "args": "all", "argsIgnorePattern": "^_",
+      "vars": "all", "varsIgnorePattern": "^_"
+    }]
+  }
 }
