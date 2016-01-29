@@ -39,7 +39,7 @@ const _isMalList = ast => typeof ast === 'object' && ast.type === 'list'
 
 const READ = arg => read_str(arg)
 const EVAL = (ast, env) => _isMalList(ast) && _evalList(ast, env) || eval_ast(ast, env)
-const PRINT = arg => pr_str(arg, false)
+const PRINT = arg => pr_str(arg, true)
 
 const rep = function (arg) {
   const ast = READ(arg)

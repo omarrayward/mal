@@ -1,4 +1,12 @@
-import {malSymbol, malKeyword, malList, malVector, malHashMap} from './types.js'
+import {
+  malHashMap,
+  malKeyword,
+  malList,
+  malNil,
+  malString,
+  malSymbol,
+  malVector
+} from './types.js'
 
 class Reader {
   constructor (tokens) {
@@ -108,7 +116,7 @@ const read_atom = function (reader) {
   } else if (/false/.test(token)) {
     return false
   } else if (/nil/.test(token)) {
-    return undefined
+    return malNil()
   } else if (/^:[a-zA-Z]+/.test(token)) {
     return malKeyword(token)
   } else if (/^[-+]?\d+$/.test(token)) {
@@ -116,7 +124,7 @@ const read_atom = function (reader) {
   } else if (/[-+]?[0-9]*\.[0-9]+/.test(token)) {
     return parseFloat(token)
   } else if (/"(?:\\.|[^\\"])*"/.test(token)) {
-    return token
+    return malString(token)
   } else if (/[\[\]\'{}()'`~^@]|[^\s\[\]{}('"`,;)]+/.test(token)) {
     return malSymbol(token)
   }
