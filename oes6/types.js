@@ -42,3 +42,13 @@ export const malString = function (arg) {
             .replace(/\\n/g, '\n')
             .replace(/\\\\/g, '\\')
 }
+
+export const malFunction = function (body, params, env, fn) {
+  return {
+    type: 'function',
+    ast: body,
+    params: params,
+    env: env,
+    fn: fn
+  }
+}
