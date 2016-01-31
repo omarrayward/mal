@@ -18,6 +18,8 @@ export const pr_str = function (malObj, print_readably) {
         .replace(/"/g, `\\"`)}"`
     case 'object':
       switch (malObj.type) {
+        case 'atom':
+          return `(atom ${malObj.value})`
         case 'nil':
           return 'nil'
         case 'symbol':
