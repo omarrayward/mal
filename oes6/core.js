@@ -1,5 +1,7 @@
-import {malList, malNil} from './types.js'
+import {malList, malNil, malAtom, malString} from './types.js'
 import {pr_str} from './printer.js'
+import {read_str} from './reader.js'
+import * as fs from 'fs'
 
 const list = function (...args) {
   if (!args) {
@@ -78,6 +80,28 @@ const println = function (...args) {
   return malNil()
 }
 
+const file_reader = function (fileName) {
+  return malString(fs.readFileSync(fileName, 'utf8'))
+}
+
+const atom = arg => malAtom(arg)
+const is_atom = arg => typeof arg === 'object' && arg.type === 'atom'
+const deref = atom => atom.value
+const reset = function (atom, value) {
+  atom.value = value
+  return value
+}
+
+const swap = function (atom, func, ...funcs) {
+  const args = [atom.value, ...funcs]
+  if (typeof func === 'function') {
+    atom.value = func(...args)
+  } else {
+    atom.value = func.fn(...args)
+  }
+  return atom.value
+}
+
 export const ns = {
   '+': (a, b) => a + b,
   '-': (a, b) => a - b,
@@ -95,5 +119,12 @@ export const ns = {
   'pr-str': print_string,
   'str': str,
   'prn': prn,
-  'println': println
+  'println': println,
+  'read-string': read_str,
+  'slurp': file_reader,
+  'atom': atom,
+  'atom?': is_atom,
+  'deref': deref,
+  'reset!': reset,
+  'swap!': swap
 }

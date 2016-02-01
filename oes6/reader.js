@@ -111,11 +111,11 @@ const read_list = function (reader) {
 
 const read_atom = function (reader) {
   const token = reader.peek()
-  if (/true/.test(token)) {
+  if (/^true$/.test(token)) {
     return true
-  } else if (/false/.test(token)) {
+  } else if (/^false$/.test(token)) {
     return false
-  } else if (/nil/.test(token)) {
+  } else if (/^nil$/.test(token)) {
     return malNil()
   } else if (/^:[a-zA-Z]+/.test(token)) {
     return malKeyword(token)
