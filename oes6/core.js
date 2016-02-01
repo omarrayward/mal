@@ -102,6 +102,9 @@ const swap = function (atom, func, ...funcs) {
   return atom.value
 }
 
+const concat = (...args) => malList(...malList().concat(...args))
+const cons = (arg, rest) => malList(arg, ...rest)
+
 export const ns = {
   '+': (a, b) => a + b,
   '-': (a, b) => a - b,
@@ -126,5 +129,7 @@ export const ns = {
   'atom?': is_atom,
   'deref': deref,
   'reset!': reset,
-  'swap!': swap
+  'swap!': swap,
+  'cons': cons,
+  'concat': concat
 }
