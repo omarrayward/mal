@@ -43,8 +43,8 @@ export const malString = function (arg) {
             .replace(/\\\\/g, '\\')
 }
 
-export const malFunction = function (ast, params, env, fn) {
-  return {ast, params, env, fn, type: 'function'}
+export const malFunction = function (ast, params, env, fn, is_macro) {
+  return {ast, params, env, fn, is_macro, type: 'function'}
 }
 
 export const malAtom = function (value) {
