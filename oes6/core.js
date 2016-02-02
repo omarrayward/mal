@@ -10,23 +10,25 @@ const list = function (...args) {
   return malList(...args)
 }
 
-const is_list = (...arg) => typeof arg[0] === 'object' && arg[0].type === 'list'
+const is_list = (arg) => typeof arg === 'object' && arg.type === 'list'
+const is_vector = (arg) => typeof arg === 'object' && arg.type === 'vector'
+const is_list_or_vector = (arg) => is_list(arg) || is_vector(arg)
+const _isNil = ast => typeof ast === 'object' && ast.type === 'nil'
 
-const is_empty = (...arg) => arg[0].length === 0
+const is_empty = function (arg) {
+  return arg.length === 0
+}
 
-const count = function (...args) {
-  if (typeof args[0] === 'object' && args[0].type === 'nil') {
+const count = function (arg) {
+  if (typeof arg === 'object' && arg.type === 'nil') {
     return 0
-  } else if (typeof args[0] === 'object') {
-    return args[0].length
   }
-  return args.length
+  return arg.length
 }
 
 const _same_type = (arg1, arg2) => arg1.type === arg2.type
 const _same_length = (arg1, arg2) => arg1.length === arg2.length
-const _list_or_vector = (arg1, arg2) =>
-  ['list', 'vector'].indexOf(arg1.type) !== -1 && ['list', 'vector'].indexOf(arg2.type) !== -1
+const _list_or_vector = (arg1, arg2) => is_list_or_vector(arg1) && is_list_or_vector(arg2)
 
 const _is_same_compound_data_type = function (arg1, arg2) {
   if (!_same_length(arg1, arg2)) {
@@ -105,6 +107,35 @@ const swap = function (atom, func, ...funcs) {
 const concat = (...args) => malList(...malList().concat(...args))
 const cons = (arg, rest) => malList(arg, ...rest)
 
+const nth = function (list_or_vector, index) {
+  const element = list_or_vector[index]
+  if (element === undefined) {
+    throw Error(`There is no element for ${list_or_vector} at index ${index}`)
+  }
+  return element
+}
+
+const first = function (list_or_vector) {
+  if (_isNil(list_or_vector)) {
+    return list_or_vector
+  }
+  if (is_list_or_vector(list_or_vector)) {
+    if (is_empty(list_or_vector)) {
+      return malNil()
+    }
+    return list_or_vector[0]
+  }
+  throw Error('Expected list or vector as argument of first')
+}
+
+const rest = function (list_or_vector) {
+  if (is_list_or_vector(list_or_vector)) {
+    const result = malList(...list_or_vector.slice(1))
+    return result
+  }
+  throw Error('Expected list or vector as argument of rest')
+}
+
 export const ns = {
   '+': (a, b) => a + b,
   '-': (a, b) => a - b,
@@ -131,5 +162,8 @@ export const ns = {
   'reset!': reset,
   'swap!': swap,
   'cons': cons,
-  'concat': concat
+  'concat': concat,
+  'nth': nth,
+  'first': first,
+  'rest': rest
 }
