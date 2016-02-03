@@ -21,12 +21,7 @@ const eval_ast = function (ast, env) {
       case 'vector':
         return malVector(...ast.map(element => EVAL(element, env)))
       case 'hashMap':
-        const evalArgs = []
-        Object.keys(ast).forEach(key => {
-          evalArgs.push(key)
-          evalArgs.push(EVAL(ast[key], env))
-        })
-        return malHashMap(...evalArgs)
+        return malHashMap(...ast.map(element => EVAL(element, env)))
       default:
         return ast
     }

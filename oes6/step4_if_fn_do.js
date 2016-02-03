@@ -19,7 +19,7 @@ const eval_ast = function (ast, env) {
       case 'vector':
         return malVector(...ast.map(element => EVAL(element, env)))
       case 'hashMap':
-        return malHashMap(ast[0], EVAL(ast[1], env))
+        return malHashMap(...ast.map(element => EVAL(element, env)))
       default:
         return ast
     }

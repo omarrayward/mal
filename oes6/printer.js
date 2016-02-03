@@ -27,19 +27,14 @@ export const pr_str = function (malObj, print_readably) {
           return 'nil'
         case 'symbol':
           return malObj.value
+        case 'keyword':
+          return malObj.value
         case 'list':
           return `(${malObj.map(e => pr_str(e, print_readably)).join(' ')})`
         case 'vector':
           return `[${malObj.map(e => pr_str(e, print_readably)).join(' ')}]`
         case 'hashMap':
-          const pr = print_readably
-          const keyValueString = key => {
-            if (key !== '_type') {
-              return `${pr_str(key, pr)} ${pr_str(malObj[key], pr)}`
-            }
-            return ''
-          }
-          return `{${Object.keys(malObj).map(keyValueString).join('')}}`
+          return `{${malObj.map(e => pr_str(e, print_readably)).join(' ')}}`
       }
   }
 }

@@ -7,6 +7,10 @@ export const malNil = function () {
   return {_type: 'nil'}
 }
 
+export const malKeyword = function (arg) {
+  return {_type: 'keyword', value: arg}
+}
+
 export const malList = function (...args) {
   if (!args) {
     args = []
@@ -27,13 +31,18 @@ export const malHashMap = function (...args) {
   if (args.length % 2 !== 0) {
     throw Error('The number of arguments to create an hashMap needs to be even')
   }
-  const hashMap = {_type: 'hashMap'}
+
+  args.keys = []
+  args.values = []
+  args._type = 'hashMap'
+
   let index = 0
   while (index < args.length) {
-    hashMap[args[index]] = args[index + 1]
+    args.keys.push(args[index])
+    args.values.push(args[index + 1])
     index += 2
   }
-  return hashMap
+  return args
 }
 
 export const malString = function (arg) {
@@ -50,4 +59,11 @@ export const malFunction = function (ast, params, env, fn, is_macro) {
 
 export const malAtom = function (value) {
   return {value, _type: 'atom'}
+}
+
+export const malError = function (value) {
+  return {
+    value,
+    message: 'malError'
+  }
 }

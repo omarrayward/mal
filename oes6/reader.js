@@ -4,7 +4,8 @@ import {
   malNil,
   malString,
   malSymbol,
-  malVector
+  malVector,
+  malKeyword
 } from './types.js'
 
 class Reader {
@@ -117,7 +118,7 @@ const read_atom = function (reader) {
   } else if (/^nil$/.test(token)) {
     return malNil()
   } else if (/^:[a-zA-Z]+/.test(token)) {
-    return token
+    return malKeyword(token)
   } else if (/^[-+]?\d+$/.test(token)) {
     return parseInt(token, 10)
   } else if (/[-+]?[0-9]*\.[0-9]+/.test(token)) {
