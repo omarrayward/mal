@@ -9,6 +9,9 @@ export const pr_str = function (malObj, print_readably) {
     case 'number':
       return malObj.toString()
     case 'string':
+      if (malObj[0] === ':') {
+        return malObj
+      }
       if (!print_readably) {
         return `${malObj}`
       }
@@ -17,21 +20,26 @@ export const pr_str = function (malObj, print_readably) {
         .replace(/\n/g, '\\n')
         .replace(/"/g, `\\"`)}"`
     case 'object':
-      switch (malObj.type) {
+      switch (malObj._type) {
         case 'atom':
           return `(atom ${malObj.value})`
         case 'nil':
           return 'nil'
         case 'symbol':
           return malObj.value
-        case 'keyword':
-          return malObj.value
         case 'list':
           return `(${malObj.map(e => pr_str(e, print_readably)).join(' ')})`
         case 'vector':
           return `[${malObj.map(e => pr_str(e, print_readably)).join(' ')}]`
         case 'hashMap':
-          return `{${pr_str(malObj[0], print_readably)} ${pr_str(malObj[1], print_readably)}}`
+          const pr = print_readably
+          const keyValueString = key => {
+            if (key !== '_type') {
+              return `${pr_str(key, pr)} ${pr_str(malObj[key], pr)}`
+            }
+            return ''
+          }
+          return `{${Object.keys(malObj).map(keyValueString).join('')}}`
       }
   }
 }

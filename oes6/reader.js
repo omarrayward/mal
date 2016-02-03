@@ -1,6 +1,5 @@
 import {
   malHashMap,
-  malKeyword,
   malList,
   malNil,
   malString,
@@ -118,7 +117,7 @@ const read_atom = function (reader) {
   } else if (/^nil$/.test(token)) {
     return malNil()
   } else if (/^:[a-zA-Z]+/.test(token)) {
-    return malKeyword(token)
+    return token
   } else if (/^[-+]?\d+$/.test(token)) {
     return parseInt(token, 10)
   } else if (/[-+]?[0-9]*\.[0-9]+/.test(token)) {

@@ -15,7 +15,7 @@ repl_env.set(malSymbol('*ARGV*'), malList(commandLineArgs.slice(1)))
 
 const eval_ast = function (ast, env) {
   if (typeof ast === 'object') {
-    switch (ast.type) {
+    switch (ast._type) {
       case 'symbol':
         return env.get(ast)
       case 'list':
@@ -42,18 +42,18 @@ const _isSpecialForm = (ast) =>
                  'defmacro!',
                  'macroexpand'].indexOf(ast[0].value) !== -1
 
-const _isNil = ast => typeof ast === 'object' && ast.type === 'nil'
+const _isNil = ast => typeof ast === 'object' && ast._type === 'nil'
 
 const _isFalsy = ast => _isNil(ast) || ast === false
 
 const _isTruthy = ast => !_isFalsy(ast)
 
-const _isMalList = ast => typeof ast === 'object' && ast.type === 'list'
-const _isMalVector = ast => typeof ast === 'object' && ast.type === 'vector'
+const _isMalList = ast => typeof ast === 'object' && ast._type === 'list'
+const _isMalVector = ast => typeof ast === 'object' && ast._type === 'vector'
 
 const _isPair = ast => (_isMalList(ast) || _isMalVector(ast)) && ast.length > 0
 
-const _isSymbol = ast => typeof ast === 'object' && ast.type === 'symbol'
+const _isSymbol = ast => typeof ast === 'object' && ast._type === 'symbol'
 
 const _isUnquoteSymbol = ast => _isSymbol(ast) && ast.value === 'unquote'
 
