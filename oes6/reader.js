@@ -1,11 +1,11 @@
 import {
   malHashMap,
-  malKeyword,
   malList,
   malNil,
   malString,
   malSymbol,
-  malVector
+  malVector,
+  malKeyword
 } from './types.js'
 
 class Reader {

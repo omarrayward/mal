@@ -31,9 +31,18 @@ const eval_ast = function (ast, env) {
   return ast
 }
 
-const _isSpecialForm = function (ast) {
-  return ast.length && ['def!', 'let*', 'fn*', 'do', 'if'].indexOf(ast[0].value) !== -1
-}
+const _isSpecialForm = (ast) =>
+  ast.length && ['def!',
+                 'let*',
+                 'fn*',
+                 'do',
+                 'if',
+                 'try',
+                 'quote',
+                 'quasiquote',
+                 'defmacro!',
+                 'macroexpand',
+                 'try*'].indexOf(ast[0].value) !== -1
 
 const _isNil = ast => typeof ast === 'object' && ast._type === 'nil'
 
@@ -42,10 +51,48 @@ const _isFalsy = ast => _isNil(ast) || ast === false
 const _isTruthy = ast => !_isFalsy(ast)
 
 const _isMalList = ast => typeof ast === 'object' && ast._type === 'list'
+const _isMalVector = ast => typeof ast === 'object' && ast._type === 'vector'
+
+const _isPair = ast => (_isMalList(ast) || _isMalVector(ast)) && ast.length > 0
+
+const _isSymbol = ast => typeof ast === 'object' && ast._type === 'symbol'
+
+const _isUnquoteSymbol = ast => _isSymbol(ast) && ast.value === 'unquote'
+
+const _isSpliceUnquoteSymbol = ast =>
+  _isSymbol(ast) && ast.value === 'splice-unquote'
+
+const quasiquote = function (ast) {
+  if (!_isPair(ast)) {
+    return malList(malSymbol('quote'), ast)
+  } else if (_isUnquoteSymbol(ast[0])) {
+    return ast[1]
+  } else if (_isPair(ast[0]) && _isSpliceUnquoteSymbol(ast[0][0])) {
+    const result = malList(malSymbol('concat'), ast[0][1], quasiquote(malList(...ast.slice(1))))
+    return result
+  }
+  const result = malList(malSymbol('cons'), quasiquote(ast[0]), quasiquote(malList(...ast.slice(1))))
+  return result
+}
+
+const is_macro_call = function (ast, env) {
+  return _isMalList(ast) && _isSymbol(ast[0]) && env.find(ast[0]) && env.get(ast[0]).is_macro
+}
+
+const macroexpand = function (ast, env) {
+  while (is_macro_call(ast, env)) {
+    const macroFn = env.get(ast[0])
+    const args = ast.slice(1)
+    ast = macroFn.fn(...args)
+  }
+  return ast
+}
 
 const READ = arg => read_str(arg)
 const EVAL = function (ast, env) {
   while (true) {
+    // console.log('EVAL:', pr_str(ast))
+    ast = macroexpand(ast, env)
     if (!_isMalList(ast)) {
       return eval_ast(ast, env)
     }
@@ -61,6 +108,16 @@ const EVAL = function (ast, env) {
           env.set(binds, expres)
           return expres
 
+        case 'defmacro!':
+          const bind = ast[1]
+          const _func = EVAL(ast[2], env)
+          _func.is_macro = true
+          env.set(bind, _func)
+          return _func
+
+        case 'macroexpand':
+          return macroexpand(ast[1], env)
+
         case 'do':
           const rest = ast.slice(1)
           const last = rest.pop()
@@ -68,16 +125,36 @@ const EVAL = function (ast, env) {
           ast = last
           continue
 
+        case 'try*':
+          try {
+            return EVAL(ast[1], env)
+          } catch (error) {
+            const err = error.value || error.message
+            const newEnv = new Env(env, [ast[2][1]], [err])
+            return EVAL(ast[2][2], newEnv)
+          }
+
+          continue
+
+        case 'quote':
+          return ast[1]
+
+        case 'quasiquote':
+          ast = quasiquote(ast[1])
+          continue
+
         case 'if':
           const condition = EVAL(ast[1], env)
           if (_isTruthy(condition)) {
             ast = ast[2]
+            continue
           } else if (ast[3] === undefined) {
             return malNil()
           } else {
             ast = ast[3]
+            continue
           }
-          continue
+          break
 
         case 'fn*':
           const params = ast[1]
@@ -86,7 +163,8 @@ const EVAL = function (ast, env) {
             const funcEnv = new Env(env, params, args)
             return EVAL(body, funcEnv)
           }
-          return malFunction(body, params, env, func)
+          const is_macro = false
+          return malFunction(body, params, env, func, is_macro)
 
         case 'let*':
           const newEnv = new Env(env)
@@ -94,10 +172,12 @@ const EVAL = function (ast, env) {
             throw Error('The first argument of let* should be a malList with even objects')
           }
 
-          while (ast[1].length) {
-            const [symb, val] = ast[1].splice(0, 2)
+          let index = 0
+          while (ast[1].length > index) {
+            const [symb, val] = ast[1].slice(index, index + 2)
             const evaluatedValue = EVAL(val, newEnv)
             newEnv.set(symb, evaluatedValue)
+            index = index + 2
           }
 
           env = newEnv
@@ -125,6 +205,8 @@ const rep = function (arg) {
 }
 rep('(def! not (fn* (a) (if a false true)))')
 rep(`(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) ")")))))`)
+rep(`(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw "odd number of forms to cond")) (cons 'cond (rest (rest xs)))))))`)
+rep('(defmacro! or (fn* (& xs) (if (empty? xs) nil (if (= 1 (count xs)) (first xs) `(let* (or_FIXME ~(first xs)) (if or_FIXME or_FIXME (or ~@(rest xs)))) ))))')
 if (commandLineArgs.length) {
   rep(`(load-file "${commandLineArgs[0]}")`)
   process.exit(0)

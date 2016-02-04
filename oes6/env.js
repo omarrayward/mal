@@ -31,7 +31,7 @@ export class Env {
   get (symb) {
     const env = this.find(symb)
     if (!env) {
-      throw Error(`${symb.value} not found`)
+      throw Error(`'${symb.value}' not found`)
     }
     return env.data[symb.value]
   }
