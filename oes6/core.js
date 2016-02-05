@@ -1,5 +1,6 @@
 import {malList, malNil, malAtom, malString, malSymbol, malHashMap, malVector, malKeyword, malError} from './types.js'
 import {pr_str} from './printer.js'
+import { readline } from './node_readline'
 import {read_str} from './reader.js'
 import * as fs from 'fs'
 
@@ -136,6 +137,12 @@ const swap = function (atom, func, ...funcs) {
 
 const concat = (...args) => malList(...malList().concat(...args))
 const cons = (arg, rest) => malList(arg, ...rest)
+const conj = function (list, ...args) {
+  if (list._type === 'list') {
+    return malList(...args.reverse(), ...list)
+  }
+  return malVector(...list, ...args)
+}
 
 const nth = function (list_or_vector, index) {
   const element = list_or_vector[index]
@@ -243,6 +250,12 @@ const contains = function (hashMap, key) {
   return _getIndex(hashMap.keys, key) !== -1
 }
 
+const with_meta = function (malObj, m) {
+  const newObj = Object.create(malObj)
+  newObj.meta = m
+  return newObj
+}
+
 export const ns = {
   '+': (a, b) => a + b,
   '-': (a, b) => a - b,
@@ -293,5 +306,9 @@ export const ns = {
   'contains?': contains,
   'keys': (hashMap) => malList(...hashMap.keys),
   'vals': (hashMap) => malList(...hashMap.values),
-  'sequential?': is_list_or_vector
+  'sequential?': is_list_or_vector,
+  'readline': readline,
+  'with-meta': with_meta,
+  'meta': arg => arg.meta || malNil(),
+  'conj': conj
 }
