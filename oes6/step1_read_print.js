@@ -3,7 +3,7 @@ import {pr_str} from './printer.js'
 
 const READ = arg => read_str(arg)
 const EVAL = arg => arg
-const PRINT = arg => pr_str(arg, false)
+const PRINT = arg => pr_str(arg, true)
 
 const rep = function (arg) {
   return [READ, EVAL, PRINT].reduce((memo, func) => func(memo), arg)

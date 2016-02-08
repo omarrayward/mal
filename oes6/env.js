@@ -1,6 +1,14 @@
 export class Env {
-  constructor (outer) {
+  constructor (outer, binds = [], exprs = []) {
     this.data = {'outer': outer}
+
+    for (let index = 0; index < binds.length; index++) {
+      if (binds[index].value === '&') {
+        this.data[binds[index + 1].value] = exprs.slice(index)
+        return
+      }
+      this.data[binds[index].value] = exprs[index]
+    }
   }
 
   set (symb, malObject) {
@@ -9,7 +17,7 @@ export class Env {
   }
 
   find (symb) {
-    if (this.data[symb.value]) {
+    if (this.data[symb.value] !== undefined) {
       return this
     }
     if (!this.data.outer) {
