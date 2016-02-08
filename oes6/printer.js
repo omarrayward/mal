@@ -1,4 +1,5 @@
 export const pr_str = function (malObj, print_readably) {
+  if (typeof print_readably === 'undefined') { print_readably = true }
   switch (typeof malObj) {
     case 'function':
       return '#function'
@@ -12,13 +13,13 @@ export const pr_str = function (malObj, print_readably) {
       if (malObj[0] === ':') {
         return malObj
       }
-      if (!print_readably) {
-        return `${malObj}`
+      if (print_readably) {
+        return `"${malObj
+          .replace(/\\/g, '\\\\')
+          .replace(/\n/g, '\\n')
+          .replace(/"/g, `\\"`)}"`
       }
-      return `"${malObj
-        .replace(/\\/g, '\\\\')
-        .replace(/\n/g, '\\n')
-        .replace(/"/g, `\\"`)}"`
+      return malObj
     case 'object':
       switch (malObj._type) {
         case 'atom':
