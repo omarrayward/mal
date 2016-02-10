@@ -58,7 +58,8 @@ export const read_str = function (str) {
 
 class Reader {
   constructor (str) {
-    [this.currentToken, this.restStr] = read_next_token(str)
+    this.tokenizer = _tokenizer(str)
+    this.currentToken = this.tokenizer.next().value
     if (!this.currentToken) {
       throw Error('Blank input')
     }
@@ -66,9 +67,7 @@ class Reader {
 
   next () {
     const currentToken = this.currentToken
-    const [newToken, restStr] = read_next_token(this.restStr)
-    this.currentToken = newToken
-    this.restStr = restStr
+    this.currentToken = this.tokenizer.next().value
     return currentToken
   }
 
@@ -179,6 +178,20 @@ export const read_next_token = function (str) {
     return [null, str]
   }
   return [match[1], str.slice(tokenizerRegexp.lastIndex)]
+}
+
+export function * _tokenizer (str) {
+  let token
+  let newStr = str
+  let cont = true
+  while (cont) {
+    [token, newStr] = read_next_token(newStr)
+    if (!token) {
+      cont = false
+    } else if (token.charAt(0) !== ';') {
+      yield token
+    }
+  }
 }
 
 export const tokenizer = function (str, tokens) {
