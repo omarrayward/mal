@@ -148,9 +148,10 @@ const conj = function (list, ...args) {
 }
 
 const nth = function (list_or_vector, index) {
-  const element = list_or_vector[index]
+  const ind = index >= 0 ? index : list_or_vector.length - Math.abs(index)
+  const element = list_or_vector[ind]
   if (element === undefined) {
-    throw Error(`There is no element for ${list_or_vector} at index ${index}`)
+    throw Error(`There is no element for ${list_or_vector} at index ${ind}`)
   }
   return element
 }
