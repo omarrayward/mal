@@ -1,4 +1,4 @@
-import {malList, malNil, malAtom, malString, malSymbol, malHashMap, malVector, malKeyword, malError} from './types.js'
+import {malList, malNil, malAtom, malSymbol, malHashMap, malVector, malKeyword, malError} from './types.js'
 import {pr_str} from './printer.js'
 import { readline } from './node_readline'
 import {read_str} from './reader.js'
@@ -195,19 +195,36 @@ const map = function (func, list_or_vector) {
   return malList(...list_or_vector.map(executable))
 }
 
+const _cloneHashMap = function (hashMap) {
+  const newHashmap = malHashMap()
+  hashMap.forEach(e => newHashmap.push(e))
+  hashMap.keys.forEach(e => newHashmap.keys.push(e))
+  hashMap.values.forEach(e => newHashmap.values.push(e))
+  return newHashmap
+}
+
 const assoc = function (hashMap, ...args) {
   if (args.length % 2 !== 0) {
     throw Error('The number of arguments to create an hashMap needs to be even')
   }
-  const newHashmap = []
-  hashMap.forEach(e => newHashmap.push(e))
+  const newHashmap = _cloneHashMap(hashMap)
   let index = 0
   while (index < args.length) {
-    newHashmap.push(args[index])
-    newHashmap.push(args[index + 1])
+    let key = args[index]
+    let value = args[index + 1]
+    if (newHashmap.keys.indexOf(key) === -1) {
+      newHashmap.push(key)
+      newHashmap.push(value)
+      newHashmap.keys.push(key)
+      newHashmap.values.push(value)
+    } else {
+      const keyIndex = newHashmap.keys.indexOf(key)
+      newHashmap.values[keyIndex] = value
+      newHashmap[(keyIndex * 2) - 1] = value
+    }
     index += 2
   }
-  return malHashMap(...newHashmap)
+  return newHashmap
 }
 
 const dissoc = function (hashMap, ...args) {
