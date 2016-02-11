@@ -31,6 +31,9 @@ const count = function (arg) {
   if (typeof arg === 'object' && arg._type === 'nil') {
     return 0
   }
+  if (arg._type === 'list' && arg.length === 1 && count(arg[0]) === 0) {
+    return 0
+  }
   return arg.length
 }
 
@@ -114,7 +117,7 @@ const println = function (...args) {
 }
 
 const file_reader = function (fileName) {
-  return malString(fs.readFileSync(fileName, 'utf8'))
+  return fs.readFileSync(fileName, 'utf8')
 }
 
 const atom = arg => malAtom(arg)
