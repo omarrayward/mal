@@ -124,7 +124,7 @@ const rep = function (arg) {
   return PRINT(result)
 }
 rep('(def! not (fn* (a) (if a false true)))')
-rep(`(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) ")")))))`)
+rep("(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \")\")))))")
 if (commandLineArgs.length) {
   rep(`(load-file "${commandLineArgs[0]}")`)
   process.exit(0)

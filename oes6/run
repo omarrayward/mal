@@ -2,7 +2,7 @@
 
 export PATH=./node_modules/.bin:$PATH
 if [ $1 == "es2015" ]
-    then babel-node --presets es2015 ${@:2}
+    then babel-node --presets es2015 "${@:2}"
 else
-    $1 ${@:2}
+    $1 "${@:2}"
 fi
