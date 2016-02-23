@@ -4,4 +4,4 @@ https://github.com/nodejs/node-gyp
 
 https://github.com/node-ffi/node-ffi
 
-These 2 libraries enable `readline` to run on x file
+These 2 libraries enable `import { readline } from './node_readline'` to run on `core.js`
